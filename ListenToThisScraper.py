@@ -78,9 +78,13 @@ def scrapel2t(reddit):
     songs = []
     l2t = reddit.subreddit('listentothis')
     for submission in l2t.hot(limit=25):
-        songs.append(submission)
+        songs.append(submission.title)
     return songs
 
+def convertospotify(songstoadd,token):
+    spt = spotipy.Spotify(auth=token)
+    for song in songstoadd:
+        
 
 
 
@@ -96,7 +100,7 @@ def checkplaylist(token):
     
 #Compare currentsongs and addsongs to database, if old remove, compile both lists into one list
 def comparecurrent(currentsongs, addsongs):
-    conn = sqlite3.connect('music.sqlite3')
+    conn = sqlite3.connect(rfp)
     cur = conn.cursor() 
     addtime = time.time()
     for id in currentsongs:
@@ -132,7 +136,7 @@ def removedsongfilecheck(path):
 
 #Create DB if it doesn't exist
 def initdb():
-    conn = sqlite3.connect('music.sqlite3')
+    conn = sqlite3.connect(rfp)
     cur = conn.cursor()
     try:
         cur.execute('CREATE TABLE Tracks (id TEXT, added INTEGER)')
@@ -152,6 +156,7 @@ def main():
         spt,token = spotipyconnect(su, scope, sci, scs)
         removedsongfilecheck(rfp)
         addsongs = scrapel2t(reddit)
+        addsongs = convertospotify(addsongs)
         addsongs = removedsongs(addsongs)
         currentsongs = checkplaylist(token)
         #TODO check database for songs to remove and remove
