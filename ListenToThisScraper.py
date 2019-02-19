@@ -11,10 +11,11 @@ from configparser import ConfigParser
 import praw
 import spotipy
 import spotipy.util as util
+import Scripts.l2tscraperspotify
 
 #Flow
 #connect to praw and spotify
-#connect to database
+#connect to databases
 #Scrape Reddit r/ListenToThis, save as 'addsongs'
 #Compare 'addsongs' to database
     #if already in database, remove and increment popularity on that song in database
@@ -192,7 +193,6 @@ def initdb():
 
 #-----------Main Method-----------------
 def main():
-    #startserver()
     initdb()
     while(True):
         reddit = prawconnect()
@@ -203,10 +203,7 @@ def main():
         addsongs = removedsongs(addsongs)
         currentsongs = checkplaylist(token)
         emptyplaylist(spt, token, currentsongs)
-        #TODO check database for songs to remove and remove
         newplaylist = comparecurrent(currentsongs,addsongs)
-        #TODO add songs to playlist
-
         addsongstoplaylist(newplaylist, token, spt)
         
         time.sleep(86400) #sleep for one day
