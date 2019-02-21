@@ -41,7 +41,6 @@ rci = cfg['reddit']['client_id']         #Reddit Client ID
 rcs = cfg['reddit']['client_secret']     #Reddit Secret
 ru = cfg['reddit']['username']           #Reddit Username
 rp = cfg['reddit']['password']           #Reddit Password
-print(rci + rcs + ru + rp)
 
 #Spotify Info
 sci = cfg['spotify']['client_id']        #Spotify Client ID
