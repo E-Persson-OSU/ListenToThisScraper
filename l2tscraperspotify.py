@@ -9,7 +9,7 @@ from spotipy import util
 #Acquires Necessary Token for specified scope
 #Requires user=<Spotify Username>, sci=<Spotify Client ID>, ruri=<Redirect URI>, scope=<'playlist-modify-public'>
 def spotipyconnect(user,sci,scs,ruri,scope='playlist-modify-public'):
-    token = util.prompt_for_user_token(user,scope,sci,scs,ruri)
+    token = util.prompt_for_user_token(user,scope,sci,scs,redirect_uri=ruri)
     return spotipy.Spotify(token),token
 
 def convertospotify(songstoadd,token):

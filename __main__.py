@@ -6,14 +6,11 @@ import socketserver
 import sqlite3
 import time
 from configparser import ConfigParser
-
-#imports
-import praw
-import spotipy
-import spotipy.util as util
 from l2tscraperdb import initdb
-from l2tscraperreddit import prawconnect, scrapel2t
-from l2tscraperspotify import spotipyconnect, convertospotify, checkplaylist, addsongstoplaylist, emptyplaylist
+from l2tscraperspotify import (addsongstoplaylist, checkplaylist,
+                               convertospotify, emptyplaylist, spotipyconnect)
+
+import praw
 
 #Flow
 #connect to praw and spotify
@@ -43,6 +40,9 @@ cfg.read('bot.ini')
 #Reddit Info
 rci = cfg['reddit']['client_id']         #Reddit Client ID
 rcs = cfg['reddit']['client_secret']     #Reddit Secret
+ru = cfg['reddit']['username']           #Reddit Username
+rp = cfg['reddit']['password']           #Reddit Password
+print(rci + rcs + ru + rp)
 
 #Spotify Info
 sci = cfg['spotify']['client_id']        #Spotify Client ID
@@ -57,48 +57,55 @@ rfp = cfg['files']['removed_songsfp']      #Removed Songs File Path
 
 
 #-----------Private Functions-----------------
-        
+
+def scrapel2t(reddit):
+    songs = []
+    l2t = reddit.subreddit('listentothis')
+    for submission in l2t.hot(limit=100):
+        songs.append(submission.title)
+        submission.upvote()
+    songs.pop(0)
+    return songs        
 
     
 #Compare currentsongs and addsongs to database, if old remove, compile both lists into one list
     #currentsongs over the time limit need to be removed, addsongs need to be checked against the database for duplicates and removed
-def comparecurrent(currentsongs, addsongs):
+def comparecurrent(spotifyplaylistsongs, l2tsongs):
     conn = sqlite3.connect(rfp)
     cur = conn.cursor() 
     addtime = time.time()
     added = 'Initial Value'
     #remove addsongs from currentsongs, might do something else with them later
-    for id in addsongs:
+    for id in l2tsongs:
         try:
-            currentsongs.remove(id)
+            spotifyplaylistsongs.remove(id)
         except ValueError as ve:
             print(id + ' not found in current songs.')
     
     #back to the script
-    for id in currentsongs:
+    for id in spotifyplaylistsongs:
         try:
             cur.execute('SELECT added FROM Tracks WHERE id=?', (id,))
             added = cur.fetchone()
             if added == None:
                 print('No time found for ' + id)
             elif int(addtime) - int(added) > 604800:
-                currentsongs.remove(id)
+                spotifyplaylistsongs.remove(id)
         except sqlite3.OperationalError:
             cur.execute('INSERT INTO Tracks (id, added) VALUES (?,?);', (id, time.time(),))
-    for id in addsongs:
+    for id in l2tsongs:
         try:
             check = cur.execute('SELECT id FROM Tracks WHERE id=?', (id,))
             if check == id:
-                addsongs.remove(id)
+                l2tsongs.remove(id)
         except sqlite3.OperationalError:
             cur.execute('INSERT INTO Tracks (id, added) VALUES (?,?);', (id, time.time(),))
     conn.close()
-    for id in addsongs:
-        currentsongs.append(id)
-    return currentsongs
+    for id in l2tsongs:
+        spotifyplaylistsongs.append(id)
+    return spotifyplaylistsongs
 
 #check list of removed songs
-#TODO make this check against database instead of text file
 def removedsongs(songstoadd):
     newsongs = []
     with open(rfp, 'r') as removed:
@@ -118,18 +125,18 @@ def removedsongfilecheck(path):
 
 #-----------Main Method-----------------
 def main():
-    initdb()
+    initdb(rfp)
     while(True):
-        reddit = prawconnect()
-        spt,token = spotipyconnect(su, scope, sci, scs)
+        reddit = praw.Reddit(client_id=rci, client_secret=rcs, password=rp, username=ru, user_agent='l2tscraper by /u/ascendex')
+        spt,token = spotipyconnect(su, sci, scs, redirect_uri)
         removedsongfilecheck(rfp)
         addsongs = scrapel2t(reddit)
         addsongs = convertospotify(addsongs,token)
         addsongs = removedsongs(addsongs)
-        currentsongs = checkplaylist(token)
-        emptyplaylist(spt, token, currentsongs)
+        currentsongs = checkplaylist(token,su,spid)
+        emptyplaylist(spt, token, currentsongs, su, spid)
         newplaylist = comparecurrent(currentsongs,addsongs)
-        addsongstoplaylist(newplaylist, token, spt)
+        addsongstoplaylist(newplaylist, token, spt, su, spid)
         
         time.sleep(86400) #sleep for one day
         

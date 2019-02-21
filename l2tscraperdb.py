@@ -3,7 +3,7 @@
 import sqlite3
 
 #Create DB if it doesn't exist
-def initdb():
+def initdb(rfp):
     conn = sqlite3.connect(rfp)
     cur = conn.cursor()
     try:
