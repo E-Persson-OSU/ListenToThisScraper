@@ -57,12 +57,13 @@ rfp = cfg['files']['removed_songsfp']      #Removed Songs File Path
 
 #-----------Private Functions-----------------
 
-def scrapel2t(reddit):
+def scrapel2t(reddit,upvote):
     songs = []
     l2t = reddit.subreddit('listentothis')
     for submission in l2t.hot(limit=100):
         songs.append(submission.title)
-        submission.upvote()
+        if upvote=='y':
+            submission.upvote()
     songs.pop(0)
     return songs        
 
@@ -129,7 +130,7 @@ def main():
         reddit = praw.Reddit(client_id=rci, client_secret=rcs, password=rp, username=ru, user_agent='l2tscraper by /u/ascendex')
         spt,token = spotipyconnect(su, sci, scs, redirect_uri)
         removedsongfilecheck(rfp)
-        addsongs = scrapel2t(reddit)
+        addsongs = scrapel2t(reddit,input('Upvote?[y/n]'))
         addsongs = convertospotify(addsongs,token)
         addsongs = removedsongs(addsongs)
         currentsongs = checkplaylist(token,su,spid)
