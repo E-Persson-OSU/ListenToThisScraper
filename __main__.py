@@ -11,9 +11,9 @@ from configparser import ConfigParser
 import praw
 import spotipy
 import spotipy.util as util
-import Scripts.l2tscraperspotify
-import Scripts.l2tscraperreddit
-import 
+from l2tscraperdb import initdb
+from l2tscraperreddit import prawconnect, scrapel2t
+from l2tscraperspotify import spotipyconnect, convertospotify, checkplaylist, addsongstoplaylist, emptyplaylist
 
 #Flow
 #connect to praw and spotify
