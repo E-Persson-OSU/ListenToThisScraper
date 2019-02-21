@@ -12,6 +12,8 @@ import praw
 import spotipy
 import spotipy.util as util
 import Scripts.l2tscraperspotify
+import Scripts.l2tscraperreddit
+import 
 
 #Flow
 #connect to praw and spotify
