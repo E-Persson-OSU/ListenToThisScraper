@@ -1,19 +1,16 @@
 #L2TScraperSpotify.py
 
-#Acquires Necessary Token for 
-def spotipyconnect(user,scope,sci,scs,ruri):
+#imports
+import spotipy
+from spotipy import util
+
+
+
+#Acquires Necessary Token for specified scope
+#Requires user=<Spotify Username>, sci=<Spotify Client ID>, ruri=<Redirect URI>, scope=<'playlist-modify-public'>
+def spotipyconnect(user,sci,scs,ruri,scope='playlist-modify-public'):
     token = util.prompt_for_user_token(user,scope,sci,scs,ruri)
     return spotipy.Spotify(token),token
-
-#Scrape ListenToThis
-
-def scrapel2t(reddit):
-    songs = []
-    l2t = reddit.subreddit('listentothis')
-    for submission in l2t.hot(limit=25):
-        songs.append(submission.title)
-    songs.pop(0)
-    return songs
 
 def convertospotify(songstoadd,token):
     spt = spotipy.Spotify(auth=token)
@@ -34,21 +31,21 @@ def convertospotify(songstoadd,token):
         
 
 #Add Songs to Spotify Playlist
-def addsongstoplaylist(playlist, token, spot): 
+def addsongstoplaylist(playlist, token, spot, spotifyusername, spotifyplaylistid ): 
     spot.trace = False
     playlist = list(set(playlist))
-    results = spot.user_playlist_add_tracks(su, spid, playlist)
+    results = spot.user_playlist_add_tracks(spotifyusername, spotifyplaylistid, playlist)
     print(results)
 
 #clear playlist before adding songs to avoid dupes
-def emptyplaylist(spt, token, currenttracks):
-    spt.user_playlist_remove_all_occurrences_of_tracks(su, spid, currenttracks)
+def emptyplaylist(spt, token, currenttracks, spotifyusername, spotifyplaylistid):
+    spt.user_playlist_remove_all_occurrences_of_tracks(spotifyusername, spotifyplaylistid, currenttracks)
 
 #Check Spotify playlist
-def checkplaylist(token):
+def checkplaylist(token, spotifyusername, spotifyplaylistid):
     pl = []
     spt = spotipy.Spotify(auth=token)
-    playlist = spt.user_playlist(su,spid)
+    playlist = spt.user_playlist(spotifyusername,spotifyplaylistid)
     items = playlist['tracks']['items']
     for track in items:
         pl.append(track['track']['id'])
