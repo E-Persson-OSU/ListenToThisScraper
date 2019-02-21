@@ -138,7 +138,12 @@ def main():
         newplaylist = comparecurrent(currentsongs,addsongs)
         addsongstoplaylist(newplaylist, token, spt, su, spid)
         
-        time.sleep(86400) #sleep for one day
+        wait = True
+        startsleep = time.time()
+        while(wait):
+            time.sleep(15)
+            
+
         
 
 
