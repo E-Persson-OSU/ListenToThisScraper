@@ -31,7 +31,7 @@ def convertospotify(songstoadd, token, names_and_ids, logger):
         if not errored:
             try:
                 id = result['tracks']['items'][0]['id']
-                artistlist = 'None'
+                artistlist = ''
                 name = result['tracks']['items'][0]['name']
                 for artist in result['tracks']['items'][0]['artists']:
                     artistlist = artistlist + ' ' + artist['name']

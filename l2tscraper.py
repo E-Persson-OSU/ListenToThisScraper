@@ -2,7 +2,7 @@
 import praw
 from l2tscraperspotify import (addsongstoplaylist, checkplaylist,
                                convertospotify, emptyplaylist, spotipyconnect)
-from l2tscraperdb import initdb, raisepopularity
+from l2tscraperdb import initdb, raisepopularity, checkfortrack, addtrack, getage
 from configparser import ConfigParser
 import time
 import sqlite3
@@ -87,54 +87,59 @@ def scrapel2t(reddit, upvote):
     return songs
 
 
-#Compare currentsongs and addsongs to database, if old remove, compile both lists into one list
-    #currentsongs over the time limit need to be removed, addsongs need to be checked against the database for duplicates and removed
-def comparecurrent(spotifyplaylistsongs, l2tsongs):
+def compareandadd(spotifyplaylistsongs, l2tsongs):
     logger.info('Creating cursor')
-    conn = sqlite3.connect(rfp)
-    cur = conn.cursor()
     addtime = time.time()
     logger.info('Time added')
     added = 'Initial Value'
-    #remove addsongs from currentsongs, might do something else with them later
 
     repeatedsongs = list()
     for id in l2tsongs:
         try:
             repeatedsongs.append(spotifyplaylistsongs.remove(id))
         except ValueError as ve:
-            logger.info('XXX')
             logger.info(id + ' not found in current songs.')
 
-    #back to the script
-    logger.info('Comparing Spotify playlist to music.sqlite3')
-    for id in spotifyplaylistsongs:
-        try:
-            cur.execute('SELECT added FROM Tracks WHERE id=?', (id,))
-            added = cur.fetchone()
-            if added == None:
-                logger.info('Time not found for {}'.format(id))
-            elif int(addtime) - int(added) > 604800:
-                spotifyplaylistsongs.remove(id)
-        except sqlite3.OperationalError:
-            logger.info('Creating entry for {}'.format(name))
-            cur.execute(
-                'INSERT INTO Tracks (id, added, popularity) VALUES (?,?,?);', (id, time.time(), 1,))
+    lessthanweekold = list()
     for id in l2tsongs.keys():
-        name = l2tsongs[id][0]
-        artists = [1]
-        try:
-            check = cur.execute('SELECT id FROM Tracks WHERE id=?', (id,))
-            if check == id:
-                l2tsongs.remove(id)
-        except sqlite3.OperationalError:
-            cur.execute('INSERT INTO Tracks (id, title, artists, added, popularity) VALUES (?,?,?,?,?);',
-                        (id, name, artists, time.time(), 1,))
-    conn.close()
-    logger.info('Adding songs to final list')
-    for id in l2tsongs:
-        spotifyplaylistsongs.append(id)
-    return spotifyplaylistsongs
+        logger.info('Checking if {} exists.'.format(id))
+        exists = checkfortrack(rfp, logger, id)
+        logger.info('Exists? {}'.format(exists))
+        if not exists:
+            trackdetails = l2tsongs[id]
+            title = trackdetails[0]
+            artists = trackdetails[1]
+            logger.debug('{} {} {}'.format(id,title,artists))
+            addtrack(rfp, logger, id, addtime, title, artists)
+            logger.info('Added entry.')
+            lessthanweekold.append(id)
+        else:
+            logger.info('Raising popularity')
+            raisepopularity(rfp, id, logger)
+            agedb = getage(rfp, logger, id)
+            underweek = int(addtime - agedb) < 604800
+            logger.debug('{} under a week old? {}'.format(id,underweek))
+            if underweek:
+                lessthanweekold.append(id)
+    
+    logger.info('Checking Spotify Songs')
+    for id in spotifyplaylistsongs:
+        exists = checkfortrack(rfp, logger, id)
+        logger.debug('{}? {}'.format(id, exists))
+        if not exists:
+            addtrack(rfp, logger, id, addtime)
+            logger.info('Track added to database')
+            lessthanweekold.append(id)
+        else:
+            agedb = getage(rfp, logger, id)
+            underweek = int(addtime - agedb) < 604800
+            logger.debug('{} under a week old? {}'.format(id,underweek))
+            if underweek:
+                lessthanweekold.append(id)
+    
+    return lessthanweekold
+            
+
 
 
 def removedsongfilecheck(path):
@@ -185,13 +190,13 @@ def main():
 
         currentsongs = checkplaylist(token, su, spid, logger)
         emptyplaylist(spt, token, currentsongs, su, spid, logger)
-        newplaylist = comparecurrent(currentsongs, namedict)
+        newplaylist = compareandadd(currentsongs, namedict)
         addsongstoplaylist(newplaylist, token, spt, su, spid, logger)
         if wait:
             logger.info('Waiting until {}.'.format(time.ctime(time.time()+86400)))
             time.sleep(86400)
 
-
+logger.info('Checking if __main__')
 if __name__ == "__main__":
     logger.info('Execute main()')
     main()
