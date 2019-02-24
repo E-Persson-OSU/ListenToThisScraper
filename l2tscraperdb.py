@@ -58,4 +58,4 @@ def getage(rfp, logger, id):
     cur.execute('SELECT added FROM Tracks WHERE id=?', (id,))
     age = cur.fetchone()
     conn.close()
-    return age
+    return age[0]
