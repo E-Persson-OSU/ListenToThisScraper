@@ -1,4 +1,4 @@
-#ListenToThisScraper.py
+# ListenToThisScraper.py
 import praw
 from l2tscraperspotify import (addsongstoplaylist, checkplaylist,
                                convertospotify, emptyplaylist, spotipyconnect)
@@ -21,22 +21,22 @@ logger.addHandler(handler)
 
 logger.info('Loading Imports')
 
-#Flow
-#connect to praw and spotify
-#connect to databases
-#Scrape Reddit r/ListenToThis, save as 'addsongs'
-#Compare 'addsongs' to database
-#if already in database, remove and increment popularity on that song in database
-#Pull songs from spotify playlist, save as 'currentsongs'
-#compare 'currentsongs' to database
-#if date in 'Added' field is over a week ago, remove song from currentsongs, add to 'removedsongs'
-#else add song to database with fields 'id' and 'Added'
-#Compare removedsongs and addsongs
-#if any removedsongs == addsongs, remove from addsongs
-#Add addsongs to playlist
-#wait for one day
+# Flow
+# connect to praw and spotify
+# connect to databases
+# Scrape Reddit r/ListenToThis, save as 'addsongs'
+# Compare 'addsongs' to database
+# if already in database, remove and increment popularity on that song in database
+# Pull songs from spotify playlist, save as 'currentsongs'
+# compare 'currentsongs' to database
+# if date in 'Added' field is over a week ago, remove song from currentsongs, add to 'removedsongs'
+# else add song to database with fields 'id' and 'Added'
+# Compare removedsongs and addsongs
+# if any removedsongs == addsongs, remove from addsongs
+# Add addsongs to playlist
+# wait for one day
 
-#-------------globalvariables-----------------
+# -------------globalvariables-----------------
 
 logger.info('Loading bot.ini')
 playlist = 'https://open.spotify.com/playlist/0R2kxFWpcaUn6vrmKWZSSY'
@@ -44,17 +44,17 @@ playlist = 'https://open.spotify.com/playlist/0R2kxFWpcaUn6vrmKWZSSY'
 addsongs = []
 namedict = dict()
 
-#configparser setup
+# configparser setup
 cfg = ConfigParser()
 cfg.read('bot.ini')
 
-#Reddit Info
+# Reddit Info
 rci = cfg['reddit']['client_id']  # Reddit Client ID
 rcs = cfg['reddit']['client_secret']  # Reddit Secret
 ru = cfg['reddit']['username']  # Reddit Username
 rp = cfg['reddit']['password']  # Reddit Password
 
-#Spotify Info
+# Spotify Info
 sci = cfg['spotify']['client_id']  # Spotify Client ID
 scs = cfg['spotify']['client_secret']  # Spotify Client Secret
 spid = cfg['spotify']['playlist_id']  # Spotify Playlist ID
@@ -62,16 +62,16 @@ su = cfg['spotify']['username']
 scope = 'playlist-modify-public'
 redirect_uri = cfg['spotify']['redirect_uri']
 
-#Running Info
+# Running Info
 rfp = cfg['files']['removed_songsfp']  # Removed Songs File Path
 
 
-#-----------Private Functions-----------------
+# -----------Private Functions-----------------
 
 
 logger.info('Loading functions')
 
-#Scrapes l2t with option to upvote, takes considerably longer.
+# Scrapes l2t with option to upvote, takes considerably longer.
 
 
 def scrapel2t(reddit, upvote):
@@ -109,7 +109,7 @@ def compareandadd(spotifyplaylistsongs, l2tsongs):
             trackdetails = l2tsongs[id]
             title = trackdetails[0]
             artists = trackdetails[1]
-            logger.debug('{} {} {}'.format(id,title,artists))
+            logger.debug('{} {} {}'.format(id, title, artists))
             addtrack(rfp, logger, id, addtime, title, artists)
             logger.info('Added entry.')
             lessthanweekold.append(id)
@@ -118,10 +118,10 @@ def compareandadd(spotifyplaylistsongs, l2tsongs):
             raisepopularity(rfp, id, logger)
             agedb = getage(rfp, logger, id)
             underweek = int(addtime - agedb) < 604800
-            logger.debug('{} under a week old? {}'.format(id,underweek))
+            logger.debug('{} under a week old? {}'.format(id, underweek))
             if underweek:
                 lessthanweekold.append(id)
-    
+
     logger.info('Checking Spotify Songs')
     for id in spotifyplaylistsongs:
         exists = checkfortrack(rfp, logger, id)
@@ -133,13 +133,11 @@ def compareandadd(spotifyplaylistsongs, l2tsongs):
         else:
             agedb = getage(rfp, logger, id)
             underweek = int(addtime - agedb) < 604800
-            logger.debug('{} under a week old? {}'.format(id,underweek))
+            logger.debug('{} under a week old? {}'.format(id, underweek))
             if underweek:
                 lessthanweekold.append(id)
-    
-    return lessthanweekold
-            
 
+    return lessthanweekold
 
 
 def removedsongfilecheck(path):
@@ -151,9 +149,9 @@ def removedsongfilecheck(path):
         logger.info('Database did not exist, database created.')
 
 
-#end
+# end
 
-#-----------Main Method-----------------
+# -----------Main Method-----------------
 def main():
     logger.info('Start Database')
     initdb(rfp, logger)
@@ -193,8 +191,10 @@ def main():
         newplaylist = compareandadd(currentsongs, namedict)
         addsongstoplaylist(newplaylist, token, spt, su, spid, logger)
         if wait:
-            logger.info('Waiting until {}.'.format(time.ctime(time.time()+86400)))
+            logger.info('Waiting until {}.'.format(
+                time.ctime(time.time()+86400)))
             time.sleep(86400)
+
 
 logger.info('Checking if __main__')
 if __name__ == "__main__":

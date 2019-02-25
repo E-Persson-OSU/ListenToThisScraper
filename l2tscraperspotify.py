@@ -56,7 +56,9 @@ def addsongstoplaylist(playlist, token, spot, spotifyusername, spotifyplaylistid
     logger.debug(results)
 
 # clear playlist before adding songs to avoid dupes
-def emptyplaylist(spt, token, currenttracks, spotifyusername, spotifyplaylistid,logger):
+
+
+def emptyplaylist(spt, token, currenttracks, spotifyusername, spotifyplaylistid, logger):
     logger.info('Clearing Playlist')
     spt.user_playlist_remove_all_occurrences_of_tracks(
         spotifyusername, spotifyplaylistid, currenttracks)
@@ -64,7 +66,7 @@ def emptyplaylist(spt, token, currenttracks, spotifyusername, spotifyplaylistid,
 # Check Spotify playlist
 
 
-def checkplaylist(token, spotifyusername, spotifyplaylistid,logger):
+def checkplaylist(token, spotifyusername, spotifyplaylistid, logger):
     logger.info('Checking Playlist')
     pl = []
     spt = spotipy.Spotify(auth=token)
