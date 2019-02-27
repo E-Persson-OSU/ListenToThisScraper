@@ -138,7 +138,13 @@ def compareandadd(spotifyplaylistsongs, l2tsongs):
                 lessthanweekold.append(id)
     
     return lessthanweekold
-            
+
+def limitto100(songlist):
+    first100 = list()
+    for x in range(0,99):
+        first100.append(songlist[x])
+    return first100
+
 
 
 
@@ -191,6 +197,7 @@ def main():
         currentsongs = checkplaylist(token, su, spid, logger)
         emptyplaylist(spt, token, currentsongs, su, spid, logger)
         newplaylist = compareandadd(currentsongs, namedict)
+        newplaylist = limitto100(newplaylist)
         addsongstoplaylist(newplaylist, token, spt, su, spid, logger)
         if wait:
             logger.info('Waiting until {}.'.format(time.ctime(time.time()+86400)))
