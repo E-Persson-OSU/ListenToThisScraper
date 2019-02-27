@@ -81,9 +81,9 @@ def scrapel2t(reddit, upvote):
     for submission in l2t.hot(limit=100):
         logger.info('Scraped ' + submission.title)
         songs.append(submission.title)
-        if upvote == 'y':
-            logger.info('Upvoting submission')
-            submission.upvote()
+        #if upvote == 'y':
+            #logger.info('Upvoting submission')
+            #submission.upvote()
     return songs
 
 
