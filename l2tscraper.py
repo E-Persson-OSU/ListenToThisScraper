@@ -81,9 +81,9 @@ def scrapel2t(reddit, upvote):
     for submission in l2t.hot(limit=100):
         logger.info('Scraped ' + submission.title)
         songs.append(submission.title)
-        #if upvote == 'y':
-            #logger.info('Upvoting submission')
-            #submission.upvote()
+        if upvote == 'y':
+            logger.info('Upvoting submission')
+            submission.upvote()
     return songs
 
 
@@ -141,8 +141,11 @@ def compareandadd(spotifyplaylistsongs, l2tsongs):
 
 def limitto100(songlist):
     first100 = list()
-    for x in range(0,99):
-        first100.append(songlist[x])
+    if len(first100) > 100:
+        for x in range(0,99):
+            first100.append(songlist[x])
+    else:
+        first100 = songlist
     return first100
 
 
@@ -165,6 +168,7 @@ def main():
     initdb(rfp, logger)
     startsleep = time.time()
     wait = True
+    upvote = "FIRSTRUN"
     logger.debug('Time recorded: ' + str(startsleep))
     while(wait):
         namedict = dict()
@@ -183,7 +187,8 @@ def main():
         removedsongfilecheck(rfp)
 
         logger.info('Prompt user for input')
-        upvote = input('Upvote?[y/n]')
+        if upvote == "FIRSTRUN":
+            upvote = input('Upvote?[y/n]')
         logger.debug('User chose: {}'.format(upvote))
         logger.debug('Contents of addsongs:')
         addsongs = scrapel2t(reddit, upvote)
