@@ -166,47 +166,40 @@ def removedsongfilecheck(path):
 def main():
     logger.info('Start Database')
     initdb(rfp, logger)
-    startsleep = time.time()
-    wait = True
-    upvote = "FIRSTRUN"
-    logger.debug('Time recorded: ' + str(startsleep))
-    while(wait):
-        namedict = dict()
+    #upvote = "FIRSTRUN"
+    namedict = dict()
 
-        logger.info('Connecting to Reddit')
-        logger.debug(
-            'Reddit Client ID: {} Reddit_Client Secret: {}'.format(rci, rcs))
-        reddit = praw.Reddit(client_id=rci, client_secret=rcs, password=rp,
-                             username=ru, user_agent='l2tscraper by /u/ascendex')
+    logger.info('Connecting to Reddit')
+    logger.debug(
+        'Reddit Client ID: {} Reddit_Client Secret: {}'.format(rci, rcs))
+    reddit = praw.Reddit(client_id=rci, client_secret=rcs, password=rp,
+                         username=ru, user_agent='l2tscraper by /u/ascendex')
 
-        logger.info('Connecting to Spotify')
-        spt, token = spotipyconnect(su, sci, scs, redirect_uri)
-        logger.debug('Spotify token: {}'.format(token))
+    logger.info('Connecting to Spotify')
+    spt, token = spotipyconnect(su, sci, scs, redirect_uri)
+    logger.debug('Spotify token: {}'.format(token))
 
-        logger.info('Checking if Database exists')
-        removedsongfilecheck(rfp)
+    logger.info('Checking if Database exists')
+    removedsongfilecheck(rfp)
 
-        logger.info('Prompt user for input')
-        if upvote == "FIRSTRUN":
-            upvote = input('Upvote?[y/n]')
-        logger.debug('User chose: {}'.format(upvote))
-        logger.debug('Contents of addsongs:')
-        addsongs = scrapel2t(reddit, upvote)
-        namedict = convertospotify(addsongs, token, namedict, logger)
+    logger.info('Prompt user for input')
+    upvote = 'y'
+    #if upvote == "FIRSTRUN":
+    #    upvote = input('Upvote?[y/n]')
+    logger.debug('User chose: {}'.format(upvote))
+    logger.debug('Contents of addsongs:')
+    addsongs = scrapel2t(reddit, upvote)
+    namedict = convertospotify(addsongs, token, namedict, logger)
+    tids = list(namedict.keys())
+    for song in tids:
+        raisepopularity(rfp, song, logger)
+    logger.info('Compiling final list')
 
-        tids = list(namedict.keys())
-        for song in tids:
-            raisepopularity(rfp, song, logger)
-        logger.info('Compiling final list')
-
-        currentsongs = checkplaylist(token, su, spid, logger)
-        emptyplaylist(spt, token, currentsongs, su, spid, logger)
-        newplaylist = compareandadd(currentsongs, namedict)
-        newplaylist = limitto100(newplaylist)
-        addsongstoplaylist(newplaylist, token, spt, su, spid, logger)
-        if wait:
-            logger.info('Waiting until {}.'.format(time.ctime(time.time()+86400)))
-            time.sleep(86400)
+    currentsongs = checkplaylist(token, su, spid, logger)
+    emptyplaylist(spt, token, currentsongs, su, spid, logger)
+    newplaylist = compareandadd(currentsongs, namedict)
+    newplaylist = limitto100(newplaylist)
+    addsongstoplaylist(newplaylist, token, spt, su, spid, logger)
 
 logger.info('Checking if __main__')
 if __name__ == "__main__":

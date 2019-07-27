@@ -20,9 +20,9 @@ def raisepopularity(rfp, track_id, logger):
     conn = sqlite3.connect(rfp)
     cur = conn.cursor()
     try:
-        cur.execute('UPDATE Tracks SET popularity WHERE id = ?',(track_id,))
+        cur.execute('UPDATE Tracks SET popularity = popularity + 1 WHERE id = ?',(track_id,))
         conn.commit()
-        logger.info('{} popularity incremented.}'.format(track_id))
+        logger.info('{} popularity incremented.'.format(track_id))
     except sqlite3.OperationalError as error:
         logger.error(error, exc_info=True)
     conn.close()
